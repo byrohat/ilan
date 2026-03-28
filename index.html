@@ -562,8 +562,21 @@
         }
 
         .export-capture-mode {
+            display: block !important;
+            align-items: initial !important;
+            justify-content: initial !important;
+            padding: 0 !important;
+            margin: 0 !important;
             background: #0a0d11 !important;
             overflow: hidden !important;
+        }
+
+        .export-capture-mode .poster-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            margin: 0 !important;
+            transform: none !important;
         }
 
         @media (max-width: 860px) {
@@ -852,7 +865,11 @@
             document.body.classList.add('export-mode', 'export-capture-mode');
             poster.style.width = '800px';
             poster.style.minHeight = '1130px';
-            poster.style.margin = '0 auto';
+            poster.style.margin = '0';
+            poster.style.position = 'absolute';
+            poster.style.left = '0';
+            poster.style.top = '0';
+            poster.style.transform = 'none';
 
             const finalizeExport = () => {
                 if (originalPosterStyle) {
@@ -876,12 +893,14 @@
                     scale: targetScale,
                     useCORS: true,
                     backgroundColor: "#ffffff",
-                    width: Math.round(rect.width),
-                    height: Math.round(rect.height),
+                    x: 0,
+                    y: 0,
+                    width: 800,
+                    height: 1130,
                     windowWidth: 800,
-                    windowHeight: Math.round(rect.height),
-                    scrollX: -window.scrollX,
-                    scrollY: -window.scrollY
+                    windowHeight: 1130,
+                    scrollX: 0,
+                    scrollY: 0
                 }).then(canvas => {
                     const imageData = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
