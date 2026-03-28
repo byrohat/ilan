@@ -456,129 +456,6 @@
             filter: drop-shadow(0 14px 24px rgba(0,0,0,0.35));
         }
 
-        .export-mode .poster-container {
-            width: 800px !important;
-            min-height: 1130px !important;
-            padding: 34px !important;
-            border-radius: 34px !important;
-        }
-
-        .export-mode .toolbar {
-            display: none !important;
-        }
-
-        .export-mode .header-title {
-            min-height: 134px !important;
-            padding: 18px 22px 24px !important;
-            gap: 18px !important;
-        }
-
-        .export-mode .header-title::after {
-            bottom: 6px !important;
-            font-size: 19px !important;
-            letter-spacing: 1px !important;
-        }
-
-        .export-mode .header-main-logo {
-            max-width: 340px !important;
-        }
-
-        .export-mode .header-side-logo {
-            width: 54px !important;
-            height: 54px !important;
-            max-width: 54px !important;
-            max-height: 54px !important;
-        }
-
-        .export-mode .image-wrapper {
-            height: 480px !important;
-            margin-bottom: 32px !important;
-        }
-
-        .export-mode .image-wrapper.multi-image {
-            height: 590px !important;
-        }
-
-        .export-mode .image-wrapper.multi-image .car-image-layout {
-            grid-template-rows: minmax(0, 1fr) 96px !important;
-        }
-
-        .export-mode .thumbnail-item {
-            height: 96px !important;
-            border-radius: 22px !important;
-        }
-
-        .export-mode .car-image-container {
-            height: 100% !important;
-            border-radius: 30px 140px 30px 30px !important;
-        }
-
-        .export-mode .badge {
-            z-index: 8 !important;
-        }
-
-        .export-mode .badge.model {
-            top: -18px !important;
-            left: -18px !important;
-            width: 196px !important;
-            min-height: 84px !important;
-            padding: 14px 16px !important;
-            font-size: 19px !important;
-            border-radius: 34px 52px 22px 36px !important;
-            transform: rotate(-6deg) !important;
-        }
-
-        .export-mode .badge.price {
-            top: -18px !important;
-            right: -18px !important;
-            width: 206px !important;
-            min-height: 84px !important;
-            padding: 14px 16px !important;
-            font-size: 22px !important;
-            border-radius: 52px 34px 36px 22px !important;
-            transform: rotate(6deg) !important;
-        }
-
-        .export-mode .specs-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        }
-
-        .export-mode .logo-placeholder {
-            width: 110px !important;
-            height: 110px !important;
-        }
-
-        .export-mode .footer {
-            flex-direction: row !important;
-        }
-
-        .export-mode .contact {
-            justify-content: flex-start !important;
-            font-size: 22px !important;
-        }
-
-        .export-mode .contact-right {
-            justify-content: flex-end !important;
-        }
-
-        .export-capture-mode {
-            display: block !important;
-            align-items: initial !important;
-            justify-content: initial !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            background: #0a0d11 !important;
-            overflow: hidden !important;
-        }
-
-        .export-capture-mode .poster-container {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            margin: 0 !important;
-            transform: none !important;
-        }
-
         @media (max-width: 860px) {
             body {
                 padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -773,6 +650,14 @@
     </div>
 
     <script>
+        function isIosSafari() {
+            const ua = window.navigator.userAgent;
+            const iOS = /iP(ad|hone|od)/.test(ua);
+            const webkit = /WebKit/.test(ua);
+            const notOtherBrowser = !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+            return iOS && webkit && notOtherBrowser;
+        }
+
         function populateYearOptions() {
             const yearSelect = document.getElementById('yearSelect');
             if (!yearSelect) return;
@@ -854,75 +739,39 @@
             const poster = document.getElementById('poster');
             const button = document.querySelector('button');
             const originalText = button.innerText;
-            const originalPosterStyle = poster.getAttribute('style') || '';
-            const originalBodyClass = document.body.className;
-            const originalScrollX = window.scrollX;
-            const originalScrollY = window.scrollY;
             
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
 
-            document.body.classList.add('export-mode', 'export-capture-mode');
-            poster.style.width = '800px';
-            poster.style.minHeight = '1130px';
-            poster.style.margin = '0';
-            poster.style.position = 'absolute';
-            poster.style.left = '0';
-            poster.style.top = '0';
-            poster.style.transform = 'none';
+            // html2canvas ile div'i resme dönüştür. Scale = 2 ile yüksek kalite sağlanır.
+            html2canvas(poster, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff"
+            }).then(canvas => {
+                const imageData = canvas.toDataURL('image/png');
 
-            const finalizeExport = () => {
-                if (originalPosterStyle) {
-                    poster.setAttribute('style', originalPosterStyle);
+                if (isIosSafari()) {
+                    const newWindow = window.open();
+                    if (newWindow) {
+                        newWindow.document.write('<title>Ilani Kaydet</title><img src="' + imageData + '" style="width:100%;height:auto;display:block;">');
+                        newWindow.document.close();
+                    } else {
+                        window.location.href = imageData;
+                    }
                 } else {
-                    poster.removeAttribute('style');
-                }
-                document.body.className = originalBodyClass;
-                window.scrollTo(originalScrollX, originalScrollY);
-                button.innerText = originalText;
-                button.disabled = false;
-            };
-
-            const runCapture = () => {
-                const rect = poster.getBoundingClientRect();
-                const isIos = /iP(ad|hone|od)/.test(window.navigator.userAgent);
-                const maxScale = isIos ? 1.5 : 2;
-                const targetScale = Math.min(maxScale, Math.max(1, 1600 / rect.width));
-
-                html2canvas(poster, {
-                    scale: targetScale,
-                    useCORS: true,
-                    backgroundColor: "#ffffff",
-                    x: 0,
-                    y: 0,
-                    width: 800,
-                    height: 1130,
-                    windowWidth: 800,
-                    windowHeight: 1130,
-                    scrollX: 0,
-                    scrollY: 0
-                }).then(canvas => {
-                    const imageData = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
                     link.download = 'ilan-' + Date.now() + '.png';
                     link.href = imageData;
                     link.click();
-                    finalizeExport();
-                }).catch(err => {
-                    finalizeExport();
-                    alert("Resim oluşturulurken bir hata oluştu.");
-                });
-            };
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, 0);
-                    if (document.fonts && document.fonts.ready) {
-                        document.fonts.ready.then(runCapture);
-                    } else {
-                        runCapture();
-                    }
-                });
+                }
+                
+                button.innerText = originalText;
+                button.disabled = false;
+            }).catch(err => {
+                alert("Resim oluşturulurken bir hata oluştu.");
+                button.innerText = originalText;
+                button.disabled = false;
             });
         }
 
