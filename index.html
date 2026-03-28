@@ -561,16 +561,17 @@
             justify-content: flex-end !important;
         }
 
-        .export-capture-root {
-            position: fixed;
-            left: -10000px;
-            top: 0;
-            width: 800px;
-            padding: 0;
-            margin: 0;
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0;
+        .export-capture-mode {
+            background: #0a0d11 !important;
+            overflow: hidden !important;
+        }
+
+        .export-capture-mode .poster-container {
+            position: fixed !important;
+            left: 50% !important;
+            top: 0 !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999 !important;
         }
 
         @media (max-width: 860px) {
@@ -848,43 +849,56 @@
             const poster = document.getElementById('poster');
             const button = document.querySelector('button');
             const originalText = button.innerText;
+            const originalPosterStyle = poster.getAttribute('style') || '';
+            const originalBodyClass = document.body.className;
             
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
 
-            const exportRoot = document.createElement('div');
-            exportRoot.className = 'export-capture-root export-mode';
+            document.body.classList.add('export-mode', 'export-capture-mode');
+            poster.style.width = '800px';
+            poster.style.minHeight = '1130px';
 
-            const exportPoster = poster.cloneNode(true);
-            exportPoster.id = 'poster-export';
-            exportPoster.style.width = '800px';
-            exportPoster.style.minHeight = '1130px';
-
-            exportRoot.appendChild(exportPoster);
-            document.body.appendChild(exportRoot);
-
-            // html2canvas ile div'i resme dönüştür. Scale = 2 ile yüksek kalite sağlanır.
-            html2canvas(exportPoster, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: "#ffffff",
-                windowWidth: 1200
-            }).then(canvas => {
-                const imageData = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = 'ilan-' + Date.now() + '.png';
-                link.href = imageData;
-                link.click();
-
-                exportRoot.remove();
-                
+            const finalizeExport = () => {
+                if (originalPosterStyle) {
+                    poster.setAttribute('style', originalPosterStyle);
+                } else {
+                    poster.removeAttribute('style');
+                }
+                document.body.className = originalBodyClass;
                 button.innerText = originalText;
                 button.disabled = false;
-            }).catch(err => {
-                exportRoot.remove();
-                alert("Resim oluşturulurken bir hata oluştu.");
-                button.innerText = originalText;
-                button.disabled = false;
+            };
+
+            const runCapture = () => {
+                html2canvas(poster, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    windowWidth: 1200,
+                    scrollX: 0,
+                    scrollY: 0
+                }).then(canvas => {
+                    const imageData = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = 'ilan-' + Date.now() + '.png';
+                    link.href = imageData;
+                    link.click();
+                    finalizeExport();
+                }).catch(err => {
+                    finalizeExport();
+                    alert("Resim oluşturulurken bir hata oluştu.");
+                });
+            };
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (document.fonts && document.fonts.ready) {
+                        document.fonts.ready.then(runCapture);
+                    } else {
+                        runCapture();
+                    }
+                });
             });
         }
 
