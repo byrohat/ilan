@@ -755,14 +755,6 @@
     </div>
 
     <script>
-        function isIosSafari() {
-            const ua = window.navigator.userAgent;
-            const iOS = /iP(ad|hone|od)/.test(ua);
-            const webkit = /WebKit/.test(ua);
-            const notOtherBrowser = !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
-            return iOS && webkit && notOtherBrowser;
-        }
-
         function populateYearOptions() {
             const yearSelect = document.getElementById('yearSelect');
             if (!yearSelect) return;
@@ -844,16 +836,6 @@
             const poster = document.getElementById('poster');
             const button = document.querySelector('button');
             const originalText = button.innerText;
-            const iosSafari = isIosSafari();
-            let previewWindow = null;
-
-            if (iosSafari) {
-                previewWindow = window.open("", "_blank");
-                if (previewWindow) {
-                    previewWindow.document.write('<title>Gorsel Hazirlaniyor</title><body style="margin:0;background:#0c0f13;color:#f7f3ea;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">Gorsel hazirlaniyor...</body>');
-                    previewWindow.document.close();
-                }
-            }
             
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
@@ -874,27 +856,14 @@
                 }
             }).then(canvas => {
                 const imageData = canvas.toDataURL('image/png');
-
-                if (iosSafari) {
-                    if (previewWindow) {
-                        previewWindow.document.write('<title>Ilani Kaydet</title><body style="margin:0;background:#111;"><img src="' + imageData + '" style="width:100%;height:auto;display:block;"></body>');
-                        previewWindow.document.close();
-                    } else {
-                        window.location.href = imageData;
-                    }
-                } else {
-                    const link = document.createElement('a');
-                    link.download = 'ilan-' + Date.now() + '.png';
-                    link.href = imageData;
-                    link.click();
-                }
+                const link = document.createElement('a');
+                link.download = 'ilan-' + Date.now() + '.png';
+                link.href = imageData;
+                link.click();
                 
                 button.innerText = originalText;
                 button.disabled = false;
             }).catch(err => {
-                if (previewWindow && !previewWindow.closed) {
-                    previewWindow.close();
-                }
                 alert("Resim oluşturulurken bir hata oluştu.");
                 button.innerText = originalText;
                 button.disabled = false;
