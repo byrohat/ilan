@@ -739,6 +739,16 @@
             const poster = document.getElementById('poster');
             const button = document.querySelector('button');
             const originalText = button.innerText;
+            const iosSafari = isIosSafari();
+            let previewWindow = null;
+
+            if (iosSafari) {
+                previewWindow = window.open("", "_blank");
+                if (previewWindow) {
+                    previewWindow.document.write('<title>Gorsel Hazirlaniyor</title><body style="margin:0;background:#0c0f13;color:#f7f3ea;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">Gorsel hazirlaniyor...</body>');
+                    previewWindow.document.close();
+                }
+            }
             
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
@@ -751,11 +761,10 @@
             }).then(canvas => {
                 const imageData = canvas.toDataURL('image/png');
 
-                if (isIosSafari()) {
-                    const newWindow = window.open();
-                    if (newWindow) {
-                        newWindow.document.write('<title>Ilani Kaydet</title><img src="' + imageData + '" style="width:100%;height:auto;display:block;">');
-                        newWindow.document.close();
+                if (iosSafari) {
+                    if (previewWindow) {
+                        previewWindow.document.write('<title>Ilani Kaydet</title><body style="margin:0;background:#111;"><img src="' + imageData + '" style="width:100%;height:auto;display:block;"></body>');
+                        previewWindow.document.close();
                     } else {
                         window.location.href = imageData;
                     }
@@ -769,6 +778,9 @@
                 button.innerText = originalText;
                 button.disabled = false;
             }).catch(err => {
+                if (previewWindow && !previewWindow.closed) {
+                    previewWindow.close();
+                }
                 alert("Resim oluşturulurken bir hata oluştu.");
                 button.innerText = originalText;
                 button.disabled = false;
