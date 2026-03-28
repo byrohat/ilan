@@ -566,14 +566,6 @@
             overflow: hidden !important;
         }
 
-        .export-capture-mode .poster-container {
-            position: fixed !important;
-            left: 50% !important;
-            top: 0 !important;
-            transform: translateX(-50%) !important;
-            z-index: 9999 !important;
-        }
-
         @media (max-width: 860px) {
             body {
                 padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -851,6 +843,8 @@
             const originalText = button.innerText;
             const originalPosterStyle = poster.getAttribute('style') || '';
             const originalBodyClass = document.body.className;
+            const originalScrollX = window.scrollX;
+            const originalScrollY = window.scrollY;
             
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
@@ -858,6 +852,7 @@
             document.body.classList.add('export-mode', 'export-capture-mode');
             poster.style.width = '800px';
             poster.style.minHeight = '1130px';
+            poster.style.margin = '0 auto';
 
             const finalizeExport = () => {
                 if (originalPosterStyle) {
@@ -866,18 +861,27 @@
                     poster.removeAttribute('style');
                 }
                 document.body.className = originalBodyClass;
+                window.scrollTo(originalScrollX, originalScrollY);
                 button.innerText = originalText;
                 button.disabled = false;
             };
 
             const runCapture = () => {
+                const rect = poster.getBoundingClientRect();
+                const isIos = /iP(ad|hone|od)/.test(window.navigator.userAgent);
+                const maxScale = isIos ? 1.5 : 2;
+                const targetScale = Math.min(maxScale, Math.max(1, 1600 / rect.width));
+
                 html2canvas(poster, {
-                    scale: 2,
+                    scale: targetScale,
                     useCORS: true,
                     backgroundColor: "#ffffff",
-                    windowWidth: 1200,
-                    scrollX: 0,
-                    scrollY: 0
+                    width: Math.round(rect.width),
+                    height: Math.round(rect.height),
+                    windowWidth: 800,
+                    windowHeight: Math.round(rect.height),
+                    scrollX: -window.scrollX,
+                    scrollY: -window.scrollY
                 }).then(canvas => {
                     const imageData = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -893,6 +897,7 @@
 
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
+                    window.scrollTo(0, 0);
                     if (document.fonts && document.fonts.ready) {
                         document.fonts.ready.then(runCapture);
                     } else {
