@@ -561,6 +561,18 @@
             justify-content: flex-end !important;
         }
 
+        .export-capture-root {
+            position: fixed;
+            left: -10000px;
+            top: 0;
+            width: 800px;
+            padding: 0;
+            margin: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
+        }
+
         @media (max-width: 860px) {
             body {
                 padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -840,30 +852,36 @@
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
 
+            const exportRoot = document.createElement('div');
+            exportRoot.className = 'export-capture-root export-mode';
+
+            const exportPoster = poster.cloneNode(true);
+            exportPoster.id = 'poster-export';
+            exportPoster.style.width = '800px';
+            exportPoster.style.minHeight = '1130px';
+
+            exportRoot.appendChild(exportPoster);
+            document.body.appendChild(exportRoot);
+
             // html2canvas ile div'i resme dönüştür. Scale = 2 ile yüksek kalite sağlanır.
-            html2canvas(poster, {
+            html2canvas(exportPoster, {
                 scale: 2,
                 useCORS: true,
                 backgroundColor: "#ffffff",
-                windowWidth: 1200,
-                onclone: function(clonedDoc) {
-                    clonedDoc.body.classList.add('export-mode');
-                    const clonedPoster = clonedDoc.getElementById('poster');
-                    if (clonedPoster) {
-                        clonedPoster.style.width = '800px';
-                        clonedPoster.style.minHeight = '1130px';
-                    }
-                }
+                windowWidth: 1200
             }).then(canvas => {
                 const imageData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'ilan-' + Date.now() + '.png';
                 link.href = imageData;
                 link.click();
+
+                exportRoot.remove();
                 
                 button.innerText = originalText;
                 button.disabled = false;
             }).catch(err => {
+                exportRoot.remove();
                 alert("Resim oluşturulurken bir hata oluştu.");
                 button.innerText = originalText;
                 button.disabled = false;
