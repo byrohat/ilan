@@ -375,6 +375,24 @@
             display: block;
         }
 
+        .unit-value {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .unit-number {
+            outline: none;
+        }
+
+        .unit-suffix {
+            color: rgba(242, 217, 148, 0.86);
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
+        }
+
         .check-icon {
             width: 32px;
             height: 32px;
@@ -575,8 +593,11 @@
             <div class="spec-item">
                 <div class="check-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
                 <div class="spec-item-content">
-                    <span class="spec-label">Kilometre</span>
-                    <div class="editable-field" contenteditable="true">302.000 KM</div>
+                        <span class="spec-label">Kilometre</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">302.000</span>
+                            <span class="unit-suffix">KM</span>
+                        </div>
                 </div>
             </div>
             <div class="spec-item">
