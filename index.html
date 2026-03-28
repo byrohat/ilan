@@ -456,6 +456,68 @@
             filter: drop-shadow(0 14px 24px rgba(0,0,0,0.35));
         }
 
+        .export-mode .poster-container {
+            width: 800px !important;
+            min-height: 1130px !important;
+            padding: 34px !important;
+            border-radius: 34px !important;
+        }
+
+        .export-mode .toolbar {
+            display: none !important;
+        }
+
+        .export-mode .header-title {
+            min-height: 134px !important;
+            padding: 18px 22px 24px !important;
+            gap: 18px !important;
+        }
+
+        .export-mode .header-main-logo {
+            max-width: 340px !important;
+        }
+
+        .export-mode .header-side-logo {
+            width: 54px !important;
+            height: 54px !important;
+            max-width: 54px !important;
+            max-height: 54px !important;
+        }
+
+        .export-mode .image-wrapper {
+            height: 480px !important;
+        }
+
+        .export-mode .image-wrapper.multi-image {
+            height: 590px !important;
+        }
+
+        .export-mode .image-wrapper.multi-image .car-image-layout {
+            grid-template-rows: minmax(0, 1fr) 96px !important;
+        }
+
+        .export-mode .thumbnail-item {
+            height: 96px !important;
+            border-radius: 22px !important;
+        }
+
+        .export-mode .specs-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .export-mode .footer {
+            flex-direction: row !important;
+        }
+
+        .export-mode .contact {
+            justify-content: flex-start !important;
+            font-size: 22px !important;
+        }
+
+        .export-mode .contact-right {
+            justify-content: flex-end !important;
+        }
+
         @media (max-width: 860px) {
             body {
                 padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -757,7 +819,16 @@
             html2canvas(poster, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: "#ffffff"
+                backgroundColor: "#ffffff",
+                windowWidth: 1200,
+                onclone: function(clonedDoc) {
+                    clonedDoc.body.classList.add('export-mode');
+                    const clonedPoster = clonedDoc.getElementById('poster');
+                    if (clonedPoster) {
+                        clonedPoster.style.width = '800px';
+                        clonedPoster.style.minHeight = '1130px';
+                    }
+                }
             }).then(canvas => {
                 const imageData = canvas.toDataURL('image/png');
 
