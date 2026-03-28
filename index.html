@@ -743,37 +743,113 @@
             
             button.innerText = "Hazırlanıyor...";
             button.disabled = true;
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.left = '-10000px';
+            iframe.style.top = '0';
+            iframe.style.width = '800px';
+            iframe.style.height = '1130px';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
 
-            // html2canvas ile div'i resme dönüştür. Scale = 2 ile yüksek kalite sağlanır.
-            html2canvas(poster, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: "#ffffff"
-            }).then(canvas => {
-                const imageData = canvas.toDataURL('image/png');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const fontLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"], link[rel="preconnect"]'))
+                .map(link => link.outerHTML)
+                .join('');
+            const styleTags = Array.from(document.querySelectorAll('style'))
+                .map(style => style.outerHTML)
+                .join('');
+            const exportMarkup = poster.outerHTML.replace('id="poster"', 'id="poster-export"');
 
-                if (isIosSafari()) {
-                    const newWindow = window.open();
-                    if (newWindow) {
-                        newWindow.document.write('<title>Ilani Kaydet</title><img src="' + imageData + '" style="width:100%;height:auto;display:block;">');
-                        newWindow.document.close();
+            iframeDoc.open();
+            iframeDoc.write(`
+                <!DOCTYPE html>
+                <html lang="tr">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=800, initial-scale=1.0">
+                    ${fontLinks}
+                    ${styleTags}
+                    <style>
+                        html, body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            width: 800px !important;
+                            min-width: 800px !important;
+                            background: #ffffff !important;
+                            overflow: hidden !important;
+                        }
+                        body {
+                            display: block !important;
+                        }
+                        #poster-export {
+                            width: 800px !important;
+                            min-height: 1130px !important;
+                            margin: 0 !important;
+                            position: relative !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            transform: none !important;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${exportMarkup}
+                </body>
+                </html>
+            `);
+            iframeDoc.close();
+
+            const finish = () => {
+                iframe.remove();
+                button.innerText = originalText;
+                button.disabled = false;
+            };
+
+            const capture = () => {
+                const exportPoster = iframeDoc.getElementById('poster-export');
+
+                html2canvas(exportPoster, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    width: 800,
+                    height: 1130,
+                    windowWidth: 800,
+                    windowHeight: 1130,
+                    scrollX: 0,
+                    scrollY: 0
+                }).then(canvas => {
+                    const imageData = canvas.toDataURL('image/png');
+
+                    if (isIosSafari()) {
+                        const newWindow = window.open();
+                        if (newWindow) {
+                            newWindow.document.write('<title>Ilani Kaydet</title><img src="' + imageData + '" style="width:100%;height:auto;display:block;">');
+                            newWindow.document.close();
+                        } else {
+                            window.location.href = imageData;
+                        }
                     } else {
-                        window.location.href = imageData;
+                        const link = document.createElement('a');
+                        link.download = 'ilan-' + Date.now() + '.png';
+                        link.href = imageData;
+                        link.click();
                     }
-                } else {
-                    const link = document.createElement('a');
-                    link.download = 'ilan-' + Date.now() + '.png';
-                    link.href = imageData;
-                    link.click();
-                }
-                
-                button.innerText = originalText;
-                button.disabled = false;
-            }).catch(err => {
-                alert("Resim oluşturulurken bir hata oluştu.");
-                button.innerText = originalText;
-                button.disabled = false;
-            });
+
+                    finish();
+                }).catch(() => {
+                    finish();
+                    alert("Resim oluşturulurken bir hata oluştu.");
+                });
+            };
+
+            const readyFonts = iframe.contentWindow.document.fonts;
+            if (readyFonts && readyFonts.ready) {
+                readyFonts.ready.then(() => setTimeout(capture, 150));
+            } else {
+                setTimeout(capture, 300);
+            }
         }
 
         populateYearOptions();
