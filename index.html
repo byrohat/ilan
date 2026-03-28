@@ -159,6 +159,9 @@
             background:
                 linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)),
                 #0f1318;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             cursor: pointer;
             position: relative;
             border: 1px solid var(--line);
@@ -170,6 +173,10 @@
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        .car-image-container.has-image img {
+            opacity: 0;
         }
 
         .car-image-container::after {
@@ -626,7 +633,12 @@
 
         function setMainImage(src) {
             const imageContainer = document.getElementById('carImage');
+            const imageFrame = imageContainer.closest('.car-image-container');
             imageContainer.src = src;
+            if (imageFrame) {
+                imageFrame.style.backgroundImage = `url("${src}")`;
+                imageFrame.classList.add('has-image');
+            }
         }
 
         function updateActiveThumbnail(activeIndex) {
