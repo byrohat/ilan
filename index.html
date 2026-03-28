@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0c0f13">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ERB Auto">
     <title>İlan Şablonu Oluşturucu</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Marck+Script&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -27,8 +34,12 @@
             flex-direction: column;
             align-items: center;
             padding: 24px;
+            margin: 0;
+            min-height: 100vh;
             font-family: 'Manrope', sans-serif;
             color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Düzenleme dışı araç çubuğu */
@@ -50,6 +61,7 @@
             cursor: pointer;
             font-weight: 800;
             box-shadow: 0 12px 30px rgba(0,0,0,0.24);
+            touch-action: manipulation;
         }
 
         button:hover { filter: brightness(1.05); }
@@ -82,6 +94,9 @@
         [contenteditable="true"] {
             outline: none;
             cursor: text;
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-touch-callout: default;
         }
         [contenteditable="true"]:focus {
             background-color: rgba(224, 194, 122, 0.12);
@@ -357,6 +372,7 @@
             font-weight: 700;
             appearance: none;
             cursor: pointer;
+            -webkit-appearance: none;
         }
 
         .spec-select option {
@@ -442,7 +458,17 @@
 
         @media (max-width: 860px) {
             body {
-                padding: 12px;
+                padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            }
+
+            .toolbar {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                width: 100%;
+                justify-content: center;
+                padding-top: 8px;
+                backdrop-filter: blur(10px);
             }
 
             .poster-container {
@@ -450,6 +476,30 @@
                 min-height: auto;
                 padding: 20px;
                 border-radius: 24px;
+            }
+
+            button,
+            .spec-select,
+            .editable-field,
+            [contenteditable="true"] {
+                font-size: 16px;
+            }
+
+            .header-title {
+                min-height: 116px;
+                padding: 16px 14px 22px;
+                gap: 10px;
+            }
+
+            .header-main-logo {
+                max-width: 240px;
+            }
+
+            .header-side-logo {
+                width: 58px;
+                height: 58px;
+                max-width: 58px;
+                max-height: 58px;
             }
 
             .image-wrapper {
@@ -600,6 +650,14 @@
     </div>
 
     <script>
+        function isIosSafari() {
+            const ua = window.navigator.userAgent;
+            const iOS = /iP(ad|hone|od)/.test(ua);
+            const webkit = /WebKit/.test(ua);
+            const notOtherBrowser = !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+            return iOS && webkit && notOtherBrowser;
+        }
+
         function populateYearOptions() {
             const yearSelect = document.getElementById('yearSelect');
             if (!yearSelect) return;
@@ -691,10 +749,22 @@
                 useCORS: true,
                 backgroundColor: "#ffffff"
             }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'ilan-' + Date.now() + '.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const imageData = canvas.toDataURL('image/png');
+
+                if (isIosSafari()) {
+                    const newWindow = window.open();
+                    if (newWindow) {
+                        newWindow.document.write('<title>Ilani Kaydet</title><img src="' + imageData + '" style="width:100%;height:auto;display:block;">');
+                        newWindow.document.close();
+                    } else {
+                        window.location.href = imageData;
+                    }
+                } else {
+                    const link = document.createElement('a');
+                    link.download = 'ilan-' + Date.now() + '.png';
+                    link.href = imageData;
+                    link.click();
+                }
                 
                 button.innerText = originalText;
                 button.disabled = false;
@@ -709,4 +779,3 @@
     </script>
 </body>
 </html>
-
