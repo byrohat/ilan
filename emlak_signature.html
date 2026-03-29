@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emlak Signature Şablonu</title>
+    <link rel="icon" type="image/png" href="./ERB_AUTO_Logo_yanlar.png">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg: #f3efe7;
+            --ink: #18222a;
+            --line: rgba(24, 34, 42, 0.10);
+            --olive: #173745;
+            --olive-soft: #4f6b78;
+            --bronze: #1f3f63;
+            --bronze-soft: #5d7998;
+            --shadow: rgba(16, 24, 30, 0.18);
+            --poster-width: 800px;
+            --poster-height: 1130px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 28px;
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(186, 142, 82, 0.14), transparent 24%),
+                radial-gradient(circle at bottom right, rgba(23, 55, 69, 0.14), transparent 26%),
+                linear-gradient(180deg, #f4efe7 0%, #e7ddd0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            text-align: center;
+        }
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 13px 24px;
+            background: linear-gradient(135deg, #1f4657 0%, #132b36 100%);
+            color: #f8f3ea;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 18px 34px rgba(24, 28, 27, 0.18);
+        }
+        button:hover { filter: brightness(1.04); }
+        .toolbar-note {
+            margin: 0;
+            max-width: 680px;
+            font-size: 14px;
+            color: rgba(31, 38, 39, 0.74);
+        }
+        .tag-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .tag-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.54);
+            border: 1px solid rgba(31, 38, 39, 0.10);
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .tag-toggle input {
+            width: 16px;
+            height: 16px;
+            accent-color: #5b6957;
+        }
+        .poster-container {
+            width: var(--poster-width);
+            min-height: var(--poster-height);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            border-radius: 34px;
+            background: linear-gradient(180deg, #aab0b7 0%, #bcc8d3 100%);
+            border: 1px solid rgba(24, 34, 42, 0.08);
+            box-shadow: 0 22px 44px rgba(16, 24, 30, 0.10);
+        }
+        .poster-container::before,
+        .poster-container::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+        }
+        .poster-container::before {
+            width: 220px;
+            height: 220px;
+            top: -120px;
+            right: -100px;
+            background: rgba(23, 55, 69, 0.05);
+        }
+        .poster-container::after {
+            width: 180px;
+            height: 180px;
+            left: -70px;
+            bottom: 120px;
+            background: rgba(186, 142, 82, 0.06);
+        }
+        [contenteditable="true"] { outline: none; cursor: text; }
+        [contenteditable="true"]:focus { background: rgba(165, 125, 82, 0.12); border-radius: 8px; }
+        .header-shell {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 22px;
+            padding: 20px 24px;
+            border: 1px solid rgba(24, 34, 42, 0.08);
+            border-radius: 28px;
+            background:
+                linear-gradient(180deg, rgba(189, 197, 205, 0.96), rgba(226, 235, 244, 0.94));
+            color: #173745;
+            box-shadow: 0 14px 24px rgba(16, 24, 30, 0.06);
+            text-align: left;
+        }
+        .header-shell::after {
+            content: "";
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(23, 55, 69, 0.10), transparent);
+        }
+        .brand-marker-slot { display: none; }
+        .brand-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            text-align: left;
+        }
+        .brand-lockup { display: flex; align-items: center; min-width: 0; }
+        .brand-svg {
+            width: 250px;
+            height: 42px;
+            flex-shrink: 0;
+        }
+        .brand-svg text {
+            fill: #173745;
+        }
+        .brand-wordmark {
+            display: none;
+        }
+        .brand-name {
+            display: none;
+        }
+        .brand-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .brand-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+        .header-contact {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(23, 55, 69, 0.05);
+            border: 1px solid rgba(23, 55, 69, 0.10);
+            color: #173745;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+        .header-contact svg {
+            width: 18px;
+            height: 18px;
+            fill: #1f3f63;
+            flex-shrink: 0;
+        }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 32px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .tag-primary { background: rgba(23, 55, 69, 0.08); color: #173745; }
+        .tag-soft { background: rgba(31, 63, 99, 0.16); color: #183a5a; }
+        .is-hidden { display: none; }
+        .image-section {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 24px;
+        }
+        .image-panel {
+            position: relative;
+            padding: 16px;
+            border-radius: 34px;
+            border: 1px solid rgba(24, 34, 42, 0.08);
+            background: rgba(255,255,255,0.82);
+            box-shadow: 0 14px 22px rgba(16, 24, 30, 0.06);
+        }
+        .image-mosaic {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .mosaic-card {
+            position: relative;
+            min-height: 220px;
+            overflow: hidden;
+            border-radius: 28px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
+                #d6d1c7;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            cursor: pointer;
+        }
+        .mosaic-card.span-wide {
+            grid-column: 1 / -1;
+            min-height: 200px;
+            border-radius: 28px 28px 88px 28px;
+        }
+        .mosaic-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .mosaic-card.has-image img { opacity: 0; }
+        .mosaic-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(19, 26, 23, 0.04), transparent 34%, transparent 76%, rgba(19, 26, 23, 0.16));
+            pointer-events: none;
+        }
+        .mosaic-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            color: rgba(255,255,255,0.92);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            z-index: 1;
+            background: linear-gradient(180deg, rgba(37, 47, 44, 0.24), rgba(37, 47, 44, 0.42));
+        }
+        .image-meta-bar {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+        .overlay-ribbon {
+            flex: 1;
+            padding: 13px 18px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.84);
+            color: #173745;
+            box-shadow: 0 10px 18px rgba(16, 24, 30, 0.08);
+        }
+        .overlay-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(24, 34, 42, 0.42);
+        }
+        .overlay-text {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .overlay-chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 58px;
+            padding: 10px 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(31, 63, 99, 0.18);
+            background: rgba(31, 63, 99, 0.08);
+            color: #183a5a;
+            box-shadow: 0 10px 18px rgba(16, 24, 30, 0.08);
+        }
+        .overlay-chip .price-value {
+            color: #183a5a;
+            font-size: 24px;
+            gap: 6px;
+            text-shadow: none;
+        }
+        .overlay-chip .price-currency {
+            color: #183a5a;
+            font-size: 16px;
+        }
+        .thumbnail-gallery,
+        .side-copy,
+        .footer,
+        .image-frame,
+        .image-hint { display: none; }
+        .floating-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(248, 244, 236, 0.68);
+        }
+        .type-select, .spec-select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            font-weight: 800;
+            outline: none;
+            padding: 0;
+            min-height: 26px;
+        }
+        .type-select { font-size: 23px; letter-spacing: 0.03em; text-transform: uppercase; }
+        .type-select option, .spec-select option { color: #1f2627; }
+        .price-value {
+            display: inline-flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-family: 'Playfair Display', serif;
+            font-size: 31px;
+            color: var(--bronze-soft);
+        }
+        .price-currency { color: rgba(248, 244, 236, 0.84); font-size: 20px; font-weight: 700; }
+        .side-copy {
+            padding: 16px 18px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.72);
+            border: 1px solid rgba(24, 34, 42, 0.06);
+            box-shadow: 0 10px 18px rgba(16, 24, 30, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            color: var(--ink);
+        }
+        .eyebrow { display: inline-block; margin-bottom: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(23, 55, 69, 0.58); }
+        .headline { margin: 0; font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.12; color: #173745; }
+        .subcopy { margin: 0; font-size: 13px; line-height: 1.6; color: rgba(24, 34, 42, 0.70); }
+        .copy-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(24, 34, 42, 0.10), rgba(24, 34, 42, 0.02), transparent);
+        }
+        .copy-notes {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .note-chip {
+            min-height: 0;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.74);
+            border: 1px solid rgba(24, 34, 42, 0.06);
+        }
+        .note-title {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(24, 34, 42, 0.44);
+        }
+        .note-value {
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.25;
+            color: #173745;
+        }
+        .section-title {
+            margin: 0 0 14px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: rgba(23, 55, 69, 0.46);
+        }
+        .specs-grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .spec-card {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            min-height: 88px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.94);
+            border: 1px solid rgba(19, 43, 54, 0.08);
+            overflow: hidden;
+            box-shadow: 0 14px 28px rgba(16, 24, 30, 0.05);
+        }
+        .spec-card.hidden { display: none; }
+        .spec-icon {
+            width: 58px;
+            min-width: 58px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 16px;
+            background: linear-gradient(180deg, rgba(22, 52, 65, 0.96), rgba(16, 37, 47, 0.96));
+            color: rgba(255,255,255,0.88);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+        .spec-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 7px;
+            min-width: 0;
+            padding: 14px 16px 13px;
+        }
+        .spec-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(24, 34, 42, 0.40);
+        }
+        .editable-field, .spec-select { font-size: 17px; font-weight: 800; line-height: 1.15; color: #173745; }
+        .editable-field { display: block; min-width: 0; }
+        .unit-value { display: inline-flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .unit-number { outline: none; }
+        .unit-suffix { white-space: nowrap; color: var(--bronze); font-size: 14px; font-weight: 800; letter-spacing: 0.04em; }
+        .footer {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: auto;
+            padding: 18px 22px;
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(22, 48, 60, 0.98), rgba(14, 29, 37, 0.96));
+            color: #f7f3eb;
+            box-shadow: 0 22px 40px rgba(24, 28, 27, 0.16);
+        }
+        .designer-signature { width: 100%; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(24, 34, 42, 0.40); }
+        .designer-signature strong { color: #9b7746; }
+        .contact { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; flex: 1; }
+        .contact-right { justify-content: flex-end; }
+        .contact svg { width: 28px; height: 28px; fill: #ba8e52; flex-shrink: 0; }
+        .logo-placeholder {
+            min-width: 156px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 10px 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(227, 191, 135, 0.18);
+            background: linear-gradient(180deg, rgba(22, 48, 60, 0.96), rgba(14, 29, 37, 0.92));
+            text-align: center;
+        }
+        .footer-brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #f6efe4;
+        }
+        .footer-brand-tag {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.30em;
+            text-transform: uppercase;
+            color: rgba(227, 191, 135, 0.76);
+        }
+        @media (max-width: 860px) {
+            body { padding: 16px; }
+            .poster-container { width: 100%; min-height: auto; padding: 20px; }
+            .header-shell { text-align: center; }
+            .brand-main { flex-direction: column; align-items: stretch; text-align: center; }
+            .brand-lockup { justify-content: center; }
+            .brand-side { align-items: center; }
+            .brand-meta { justify-content: center; }
+            .specs-grid { grid-template-columns: 1fr; }
+            .image-mosaic { grid-template-columns: 1fr; }
+            .mosaic-card { min-height: 180px; }
+            .mosaic-card.span-wide { grid-column: auto; min-height: 160px; }
+            .image-meta-bar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="download-button" type="button" onclick="downloadImage()">Resmi Yüksek Kalitede İndir</button>
+        <p class="toolbar-note">Metinleri değiştirmek için üzerlerine, fotoğrafları değiştirmek için ana görsele tıkla. Tür seçimi üst soldaki rozetten yapılır.</p>
+        <div class="tag-controls">
+            <label class="tag-toggle"><input type="checkbox" data-target="statusSaleTag" checked>Satılık</label>
+            <label class="tag-toggle"><input type="checkbox" data-target="statusRentTag">Kiralık</label>
+            <label class="tag-toggle"><input type="checkbox" data-target="categoryTag" checked>Gayrimenkul</label>
+            <label class="tag-toggle"><input type="checkbox" data-target="investmentTag" checked>Yatırım Fırsatları</label>
+        </div>
+    </div>
+
+    <div class="poster-container" id="poster">
+        <div class="header-shell">
+                <div class="brand-main">
+                    <div class="brand-lockup">
+                        <svg class="brand-svg" viewBox="0 0 250 42" aria-label="Lora Estate logo" role="img">
+                            <text x="0" y="22" font-family="Cormorant Garamond, serif" font-size="24" font-weight="700" letter-spacing="4">LORA</text>
+                            <text x="135" y="22" font-family="Cormorant Garamond, serif" font-size="24" font-weight="700" letter-spacing="4">ESTATE</text>
+                            <path d="M97 12h24" stroke="#1f3f63" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M109 8v8" stroke="#1f3f63" stroke-width="1.5" stroke-linecap="round"/>
+                            <circle cx="109" cy="20" r="1.8" fill="#1f3f63"/>
+                        </svg>
+                    </div>
+                <div class="brand-side">
+                    <div class="brand-meta">
+                        <span class="tag tag-primary" id="statusSaleTag">Satılık</span>
+                        <span class="tag tag-primary is-hidden" id="statusRentTag">Kiralık</span>
+                        <span class="tag tag-soft" id="categoryTag">Gayrimenkul</span>
+                        <span class="tag tag-soft" id="investmentTag">Prestij Koleksiyonu</span>
+                    </div>
+                    <div class="header-contact">
+                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <div contenteditable="true">0553 420 10 10</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="image-section">
+            <div class="image-panel" id="imagePanel">
+                <div class="image-mosaic">
+                    <div class="mosaic-card" id="mosaicCard1" onclick="document.getElementById('imageUpload').click()">
+                        <div class="mosaic-hint" id="imageHint1">Ana Gorsel</div>
+                        <img id="propertyImage1" src="" alt="">
+                    </div>
+                    <div class="mosaic-card" id="mosaicCard2" onclick="document.getElementById('imageUpload').click()">
+                        <div class="mosaic-hint" id="imageHint2">Detay Gorseli</div>
+                        <img id="propertyImage2" src="" alt="">
+                    </div>
+                    <div class="mosaic-card span-wide" id="mosaicCard3" onclick="document.getElementById('imageUpload').click()">
+                        <div class="mosaic-hint" id="imageHint3">Alt Gorsel</div>
+                        <img id="propertyImage3" src="" alt="">
+                    </div>
+                </div>
+                <div class="image-meta-bar">
+                    <div class="overlay-ribbon type-ribbon">
+                        <span class="overlay-label">İlan Türü</span>
+                        <select id="propertyType" class="type-select" aria-label="İlan Türü">
+                            <option value="arsa">Arsa</option>
+                            <option value="daire">Daire</option>
+                            <option value="villa">Villa</option>
+                        </select>
+                    </div>
+                    <div class="overlay-chip">
+                        <div class="price-value">
+                            <span class="price-number" contenteditable="true">4.850.000</span>
+                            <span class="price-currency">₺</span>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="imageUpload" accept="image/*" multiple style="display:none;" onchange="loadImage(event)">
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">İlan Detayları</h2>
+            <div class="specs-grid">
+                <div class="spec-card common-card">
+                    <div class="spec-icon">01</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Lokasyon</span>
+                        <div class="editable-field" contenteditable="true">Antalya / Anyalya</div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">02</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Metrekare</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">420</span>
+                            <span class="unit-suffix">m²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">03</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Tapu Durumu</span>
+                        <select class="spec-select" aria-label="Tapu Durumu">
+                            <option>Müstakil Tapulu</option>
+                            <option>Kat Mülkiyetli</option>
+                            <option>Kat İrtifaklı</option>
+                            <option>Hisseli</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">04</div>
+                    <div class="spec-content">
+                        <span class="spec-label">İlan No</span>
+                        <div class="editable-field" contenteditable="true">LRE-2401</div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">05</div>
+                    <div class="spec-content">
+                        <span class="spec-label">İletişim</span>
+                        <div class="editable-field" contenteditable="true">0553 420 10 10</div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">06</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Kısa Vurgu</span>
+                        <div class="editable-field" contenteditable="true">Seckin konumda, modern sunum diliyle hazirlanan ozel portfoy.</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card" data-types="arsa">
+                    <div class="spec-icon">A1</div>
+                    <div class="spec-content">
+                        <span class="spec-label">İmar Durumu</span>
+                        <select class="spec-select" aria-label="İmar Durumu">
+                            <option>Konut İmarlı</option>
+                            <option>Ticari İmarlı</option>
+                            <option>Tarla</option>
+                            <option>Sanayi İmarlı</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="spec-card type-card" data-types="arsa">
+                    <div class="spec-icon">A2</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Ada / Parsel</span>
+                        <div class="editable-field" contenteditable="true">125 / 7</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire,villa">
+                    <div class="spec-icon">K1</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Oda Sayısı</span>
+                        <div class="editable-field" contenteditable="true">4+1</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire">
+                    <div class="spec-icon">D2</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Bina Yaşı</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">3</span>
+                            <span class="unit-suffix">yıl</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire">
+                    <div class="spec-icon">D3</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Kat</span>
+                        <div class="editable-field" contenteditable="true">5. Kat</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire">
+                    <div class="spec-icon">D4</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Isıtma</span>
+                        <select class="spec-select" aria-label="Isıtma">
+                            <option>Yerden Isıtma</option>
+                            <option>Kombi</option>
+                            <option>Merkezi Sistem</option>
+                            <option>Klima</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="villa">
+                    <div class="spec-icon">V2</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Arsa Alanı</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">650</span>
+                            <span class="unit-suffix">m²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="villa">
+                    <div class="spec-icon">V3</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Kat Sayısı</span>
+                        <div class="editable-field" contenteditable="true">2 Kat</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="villa">
+                    <div class="spec-icon">V4</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Havuz / Bahçe</span>
+                        <select class="spec-select" aria-label="Havuz Bahçe">
+                            <option>Özel Havuz & Bahçe</option>
+                            <option>Bahçe Var</option>
+                            <option>Havuz Var</option>
+                            <option>Standart Peyzaj</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <script>
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = event => resolve(event.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setMosaicImages(sources) {
+            const slots = [
+                { card: 'mosaicCard1', image: 'propertyImage1', hint: 'imageHint1' },
+                { card: 'mosaicCard2', image: 'propertyImage2', hint: 'imageHint2' },
+                { card: 'mosaicCard3', image: 'propertyImage3', hint: 'imageHint3' }
+            ];
+
+            slots.forEach((slot, index) => {
+                const card = document.getElementById(slot.card);
+                const image = document.getElementById(slot.image);
+                const hint = document.getElementById(slot.hint);
+                const src = sources[index] || '';
+
+                image.src = src;
+                card.style.backgroundImage = src ? `url("${src}")` : '';
+                card.classList.toggle('has-image', !!src);
+                hint.style.display = src ? 'none' : 'flex';
+            });
+        }
+
+        async function loadImage(event) {
+            const files = Array.from(event.target.files || []).slice(0, 3);
+
+            if (!files.length) {
+                return;
+            }
+
+            const sources = await Promise.all(files.map(readFileAsDataURL));
+            setMosaicImages(sources);
+        }
+
+        function updatePropertyFields() {
+            const type = document.getElementById('propertyType').value;
+            document.querySelectorAll('.type-card').forEach(card => {
+                const visibleTypes = (card.dataset.types || '').split(',');
+                card.classList.toggle('hidden', !visibleTypes.includes(type));
+            });
+        }
+
+        function syncHeaderTags() {
+            document.querySelectorAll('.tag-controls input[type="checkbox"]').forEach(input => {
+                const target = document.getElementById(input.dataset.target);
+                if (!target) {
+                    return;
+                }
+                target.classList.toggle('is-hidden', !input.checked);
+            });
+        }
+
+        function downloadImage() {
+            const poster = document.getElementById('poster');
+            const button = document.querySelector('.download-button');
+            const originalText = button.innerText;
+
+            button.innerText = 'Hazırlanıyor...';
+            button.disabled = true;
+
+            html2canvas(poster, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'emlak-ilan-' + Date.now() + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                button.innerText = originalText;
+                button.disabled = false;
+            }).catch(() => {
+                alert('Resim oluşturulurken bir hata oluştu.');
+                button.innerText = originalText;
+                button.disabled = false;
+            });
+        }
+
+        document.getElementById('propertyType').addEventListener('change', updatePropertyFields);
+        document.querySelectorAll('.tag-controls input[type="checkbox"]').forEach(input => {
+            input.addEventListener('change', syncHeaderTags);
+        });
+        updatePropertyFields();
+        syncHeaderTags();
+    </script>
+</body>
+</html>
+

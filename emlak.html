@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emlak İlan Şablonu</title>
+    <link rel="icon" type="image/png" href="./ERB_AUTO_Logo_yanlar.png">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg: #ece5d9;
+            --ink: #1f2627;
+            --line: rgba(31, 38, 39, 0.12);
+            --olive: #4f5b4d;
+            --olive-soft: #73806d;
+            --bronze: #a57d52;
+            --bronze-soft: #c9ac82;
+            --shadow: rgba(24, 28, 27, 0.16);
+            --poster-width: 800px;
+            --poster-height: 1130px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 28px;
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(165, 125, 82, 0.16), transparent 26%),
+                radial-gradient(circle at bottom right, rgba(79, 91, 77, 0.14), transparent 24%),
+                linear-gradient(180deg, #e6dfd2 0%, #d8d1c5 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            text-align: center;
+        }
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 13px 24px;
+            background: linear-gradient(135deg, #5b6957 0%, #36413d 100%);
+            color: #f5f0e7;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 18px 34px rgba(24, 28, 27, 0.18);
+        }
+        button:hover { filter: brightness(1.04); }
+        .toolbar-note {
+            margin: 0;
+            max-width: 680px;
+            font-size: 14px;
+            color: rgba(31, 38, 39, 0.74);
+        }
+        .tag-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .tag-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.54);
+            border: 1px solid rgba(31, 38, 39, 0.10);
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .tag-toggle input {
+            width: 16px;
+            height: 16px;
+            accent-color: #5b6957;
+        }
+        .poster-container {
+            width: var(--poster-width);
+            min-height: var(--poster-height);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            border-radius: 34px;
+            background:
+                radial-gradient(circle at top right, rgba(165, 125, 82, 0.16), transparent 20%),
+                linear-gradient(180deg, #f9f5ef 0%, #f2ece2 52%, #ece4d7 100%);
+            border: 1px solid rgba(31, 38, 39, 0.08);
+            box-shadow: 0 30px 60px var(--shadow);
+        }
+        .poster-container::before,
+        .poster-container::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+        }
+        .poster-container::before {
+            width: 260px;
+            height: 260px;
+            top: -110px;
+            right: -80px;
+            background: rgba(165, 125, 82, 0.08);
+        }
+        .poster-container::after {
+            width: 220px;
+            height: 220px;
+            left: -90px;
+            bottom: 170px;
+            background: rgba(79, 91, 77, 0.08);
+        }
+        [contenteditable="true"] { outline: none; cursor: text; }
+        [contenteditable="true"]:focus { background: rgba(165, 125, 82, 0.12); border-radius: 8px; }
+        .header-shell {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 64px 1fr 64px;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 18px 22px;
+            border: 1px solid rgba(201, 172, 130, 0.18);
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(35, 42, 40, 0.98), rgba(24, 29, 28, 0.96));
+            color: #f7f3eb;
+            box-shadow: 0 22px 40px rgba(24, 28, 27, 0.16);
+        }
+        .header-shell::after {
+            content: "";
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(201, 172, 130, 0.55), transparent);
+        }
+        .brand-marker-slot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .brand-marker-slot.left-slot {
+            transform: translateX(18px);
+        }
+        .brand-marker-slot.right-slot {
+            transform: translateX(-18px);
+        }
+        .brand-marker {
+            width: 66px;
+            height: 66px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 16px rgba(31, 38, 39, 0.14));
+        }
+        .brand-main { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; }
+        .brand-logo { width: 100%; max-width: 220px; display: block; object-fit: contain; filter: drop-shadow(0 12px 20px rgba(0,0,0,0.28)); }
+        .brand-subtitle {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: rgba(201, 172, 130, 0.96);
+            text-shadow: 0 6px 18px rgba(0,0,0,0.22);
+        }
+        .brand-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: center; }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .tag-primary { background: rgba(248, 244, 236, 0.12); color: #f7f3eb; }
+        .tag-soft { background: rgba(201, 172, 130, 0.12); color: rgba(201, 172, 130, 0.96); }
+        .is-hidden { display: none; }
+        .image-section { position: relative; z-index: 1; margin-bottom: 28px; }
+        .image-panel {
+            position: relative;
+            min-height: 560px;
+            padding: 14px;
+            border-radius: 34px;
+            border: 1px solid rgba(31, 38, 39, 0.08);
+            background: rgba(255, 255, 255, 0.56);
+            box-shadow: 0 22px 40px rgba(24, 28, 27, 0.12);
+        }
+        .image-overlay {
+            position: absolute;
+            left: 34px;
+            right: 34px;
+            bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 14px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .overlay-ribbon {
+            pointer-events: auto;
+            max-width: 72%;
+            padding: 12px 16px;
+            border-radius: 18px 18px 18px 6px;
+            background: rgba(22, 29, 27, 0.72);
+            backdrop-filter: blur(8px);
+            color: #f8f4ec;
+            box-shadow: 0 14px 28px rgba(24, 28, 27, 0.18);
+        }
+        .overlay-ribbon.type-ribbon {
+            max-width: 44%;
+        }
+        .overlay-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(248, 244, 236, 0.58);
+        }
+        .overlay-text {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .overlay-chip {
+            pointer-events: auto;
+            display: inline-flex;
+            align-items: center;
+            min-height: 58px;
+            padding: 10px 18px;
+            border-radius: 18px 18px 6px 18px;
+            border: 1px solid rgba(212, 178, 112, 0.34);
+            background: linear-gradient(180deg, rgba(35, 42, 40, 0.98), rgba(24, 29, 28, 0.96));
+            color: #e0bd79;
+            box-shadow: 0 16px 30px rgba(24, 28, 27, 0.22);
+        }
+        .overlay-chip .price-value {
+            color: #e0bd79;
+            font-size: 24px;
+            gap: 6px;
+            text-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+        }
+        .overlay-chip .price-currency {
+            color: #f0cf8d;
+            font-size: 16px;
+        }
+        .image-frame {
+            width: 100%;
+            height: 100%;
+            min-height: 530px;
+            border-radius: 28px 96px 28px 28px;
+            overflow: hidden;
+            position: relative;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
+                #d6d1c7;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            cursor: pointer;
+        }
+        .image-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .image-frame.has-image img { opacity: 0; }
+        .image-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(19, 26, 23, 0.02), transparent 24%, transparent 70%, rgba(19, 26, 23, 0.3));
+            pointer-events: none;
+        }
+        .image-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            color: rgba(255,255,255,0.92);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            z-index: 1;
+            background: linear-gradient(180deg, rgba(37, 47, 44, 0.24), rgba(37, 47, 44, 0.42));
+        }
+        .thumbnail-gallery {
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .image-panel.multi-image .thumbnail-gallery { display: grid; }
+        .thumbnail-item {
+            position: relative;
+            height: 88px;
+            border: 1px solid rgba(31, 38, 39, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            padding: 0;
+            background: rgba(255,255,255,0.68);
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(24, 28, 27, 0.10);
+        }
+        .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .thumbnail-item.active { outline: 2px solid rgba(165, 125, 82, 0.7); }
+        .hero-side { display: none; }
+        .floating-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(248, 244, 236, 0.68);
+        }
+        .type-select, .spec-select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            font-weight: 800;
+            outline: none;
+            padding: 0;
+            min-height: 26px;
+        }
+        .type-select { font-size: 23px; letter-spacing: 0.03em; text-transform: uppercase; }
+        .type-select option, .spec-select option { color: #1f2627; }
+        .price-value {
+            display: inline-flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-family: 'Playfair Display', serif;
+            font-size: 31px;
+            color: var(--bronze-soft);
+        }
+        .price-currency { color: rgba(248, 244, 236, 0.84); font-size: 20px; font-weight: 700; }
+        .side-copy {
+            flex: 1;
+            padding: 22px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.62);
+            border: 1px solid rgba(31, 38, 39, 0.08);
+            box-shadow: 0 18px 34px rgba(24, 28, 27, 0.10);
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .eyebrow { display: inline-block; margin-bottom: 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--olive-soft); }
+        .headline { margin: 0 0 10px; font-family: 'Playfair Display', serif; font-size: 34px; line-height: 1.04; color: #23302c; }
+        .subcopy { margin: 0; font-size: 15px; line-height: 1.65; color: rgba(31, 38, 39, 0.76); }
+        .copy-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(79, 91, 77, 0.22), rgba(165, 125, 82, 0.22), transparent);
+        }
+        .copy-notes {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .note-chip {
+            min-height: 68px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            background: rgba(79, 91, 77, 0.08);
+            border: 1px solid rgba(79, 91, 77, 0.08);
+        }
+        .note-title {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(31, 38, 39, 0.48);
+        }
+        .note-value {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.25;
+            color: #23302c;
+        }
+        .section-title { margin: 0 0 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--olive-soft); }
+        .specs-grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .spec-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-height: 82px;
+            padding: 13px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.62);
+            border: 1px solid rgba(31, 38, 39, 0.08);
+            box-shadow: 0 12px 22px rgba(24, 28, 27, 0.07);
+        }
+        .spec-card.hidden { display: none; }
+        .spec-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(79, 91, 77, 0.12);
+            color: var(--olive);
+            font-size: 14px;
+            font-weight: 800;
+        }
+        .spec-content { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .spec-label { font-size: 11px; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase; color: rgba(31, 38, 39, 0.52); }
+        .editable-field, .spec-select { font-size: 17px; font-weight: 800; line-height: 1.15; color: var(--ink); }
+        .editable-field { display: block; min-width: 0; }
+        .unit-value { display: inline-flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .unit-number { outline: none; }
+        .unit-suffix { white-space: nowrap; color: var(--bronze); font-size: 14px; font-weight: 800; letter-spacing: 0.04em; }
+        .footer {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: auto;
+            padding: 18px 22px;
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(35, 42, 40, 0.98), rgba(24, 29, 28, 0.96));
+            color: #f7f3eb;
+            box-shadow: 0 22px 40px rgba(24, 28, 27, 0.16);
+        }
+        .designer-signature { width: 100%; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(247, 243, 235, 0.54); }
+        .designer-signature strong { color: rgba(201, 172, 130, 0.96); }
+        .contact { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; flex: 1; }
+        .contact-right { justify-content: flex-end; }
+        .contact svg { width: 28px; height: 28px; fill: var(--bronze-soft); flex-shrink: 0; }
+        .logo-placeholder {
+            width: 110px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 10px 14px;
+            border-radius: 22px;
+            border: 1px solid rgba(201, 172, 130, 0.16);
+            background: linear-gradient(180deg, rgba(35, 42, 40, 0.96), rgba(24, 29, 28, 0.92));
+        }
+        .logo-placeholder img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 12px 20px rgba(0,0,0,0.28)); }
+        @media (max-width: 860px) {
+            body { padding: 16px; }
+            .poster-container { width: 100%; min-height: auto; padding: 20px; }
+            .image-panel { min-height: 380px; }
+            .image-frame { min-height: 340px; }
+            .header-shell { grid-template-columns: 1fr; }
+            .brand-marker-slot { display: none; }
+            .brand-main { align-items: center; }
+            .brand-meta { justify-content: center; }
+            .contact, .contact-right { justify-content: center; }
+            .copy-notes { grid-template-columns: 1fr; }
+            .image-overlay {
+                left: 24px;
+                right: 24px;
+                bottom: 22px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .overlay-ribbon {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="download-button" type="button" onclick="downloadImage()">Resmi Yüksek Kalitede İndir</button>
+        <button type="button" onclick="window.open('./emlak_signature.html', '_blank')">Yeni Emlak Tasarımı</button>
+        <p class="toolbar-note">Metinleri değiştirmek için üzerlerine, fotoğrafları değiştirmek için ana görsele tıkla. Tür seçimi üst soldaki rozetten yapılır.</p>
+        <div class="tag-controls">
+            <label class="tag-toggle"><input type="checkbox" data-target="statusSaleTag" checked>Satılık</label>
+            <label class="tag-toggle"><input type="checkbox" data-target="statusRentTag">Kiralık</label>
+            <label class="tag-toggle"><input type="checkbox" data-target="categoryTag" checked>Gayrimenkul</label>
+            <label class="tag-toggle"><input type="checkbox" data-target="investmentTag" checked>Yatırım Fırsatları</label>
+        </div>
+    </div>
+
+    <div class="poster-container" id="poster">
+        <div class="header-shell">
+            <div class="brand-marker-slot left-slot">
+                <img class="brand-marker" src="./ERB_AUTO_Logo_yanlar.png" alt="ERB Auto Yan Logo">
+            </div>
+            <div class="brand-main">
+                <img class="brand-logo" src="./ERB_AUTO.png" alt="ERB Auto Logo">
+                <div class="brand-subtitle" contenteditable="true">EMLAK</div>
+                <div class="brand-meta">
+                    <span class="tag tag-primary" id="statusSaleTag">Satılık</span>
+                    <span class="tag tag-primary is-hidden" id="statusRentTag">Kiralık</span>
+                    <span class="tag tag-soft" id="categoryTag">Gayrimenkul</span>
+                    <span class="tag tag-soft" id="investmentTag">Yatırım Fırsatları</span>
+                </div>
+            </div>
+            <div class="brand-marker-slot right-slot">
+                <img class="brand-marker" src="./ERB_AUTO_Logo_yanlar.png" alt="ERB Auto Yan Logo">
+            </div>
+        </div>
+
+        <section class="image-section">
+            <div class="image-panel" id="imagePanel">
+                <div class="image-frame" id="imageFrame" onclick="document.getElementById('imageUpload').click()">
+                    <div class="image-hint" id="imageHint">Fotoğraf Yüklemek İçin Tıkla</div>
+                    <img id="propertyImage" src="" alt="">
+                </div>
+                <div class="image-overlay">
+                    <div class="overlay-ribbon type-ribbon">
+                        <span class="overlay-label">İlan Türü</span>
+                        <select id="propertyType" class="type-select" aria-label="İlan Türü">
+                            <option value="arsa">Arsa</option>
+                            <option value="daire">Daire</option>
+                            <option value="villa">Villa</option>
+                        </select>
+                    </div>
+                    <div class="overlay-chip">
+                        <div class="price-value">
+                            <span class="price-number" contenteditable="true">4.850.000</span>
+                            <span class="price-currency">₺</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="thumbnail-gallery" id="thumbnailGallery"></div>
+                <input type="file" id="imageUpload" accept="image/*" multiple style="display:none;" onchange="loadImage(event)">
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">İlan Detayları</h2>
+            <div class="specs-grid">
+                <div class="spec-card common-card">
+                    <div class="spec-icon">01</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Lokasyon</span>
+                        <div class="editable-field" contenteditable="true">Viranşehir / Şanlıurfa</div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">02</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Metrekare</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">420</span>
+                            <span class="unit-suffix">m²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">03</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Tapu Durumu</span>
+                        <select class="spec-select" aria-label="Tapu Durumu">
+                            <option>Müstakil Tapulu</option>
+                            <option>Kat Mülkiyetli</option>
+                            <option>Kat İrtifaklı</option>
+                            <option>Hisseli</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">04</div>
+                    <div class="spec-content">
+                        <span class="spec-label">İlan No</span>
+                        <div class="editable-field" contenteditable="true">ERB-2401</div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">05</div>
+                    <div class="spec-content">
+                        <span class="spec-label">İletişim</span>
+                        <div class="editable-field" contenteditable="true">0542 511 91 47</div>
+                    </div>
+                </div>
+                <div class="spec-card common-card">
+                    <div class="spec-icon">06</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Kısa Vurgu</span>
+                        <div class="editable-field" contenteditable="true">Yatırıma uygun, prestijli bölgede, yüksek potansiyelli portföy.</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card" data-types="arsa">
+                    <div class="spec-icon">A1</div>
+                    <div class="spec-content">
+                        <span class="spec-label">İmar Durumu</span>
+                        <select class="spec-select" aria-label="İmar Durumu">
+                            <option>Konut İmarlı</option>
+                            <option>Ticari İmarlı</option>
+                            <option>Tarla</option>
+                            <option>Sanayi İmarlı</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="spec-card type-card" data-types="arsa">
+                    <div class="spec-icon">A2</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Ada / Parsel</span>
+                        <div class="editable-field" contenteditable="true">125 / 7</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire,villa">
+                    <div class="spec-icon">K1</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Oda Sayısı</span>
+                        <div class="editable-field" contenteditable="true">4+1</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire">
+                    <div class="spec-icon">D2</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Bina Yaşı</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">3</span>
+                            <span class="unit-suffix">yıl</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire">
+                    <div class="spec-icon">D3</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Kat</span>
+                        <div class="editable-field" contenteditable="true">5. Kat</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="daire">
+                    <div class="spec-icon">D4</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Isıtma</span>
+                        <select class="spec-select" aria-label="Isıtma">
+                            <option>Yerden Isıtma</option>
+                            <option>Kombi</option>
+                            <option>Merkezi Sistem</option>
+                            <option>Klima</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="villa">
+                    <div class="spec-icon">V2</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Arsa Alanı</span>
+                        <div class="editable-field unit-value">
+                            <span class="unit-number" contenteditable="true">650</span>
+                            <span class="unit-suffix">m²</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="villa">
+                    <div class="spec-icon">V3</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Kat Sayısı</span>
+                        <div class="editable-field" contenteditable="true">2 Kat</div>
+                    </div>
+                </div>
+                <div class="spec-card type-card hidden" data-types="villa">
+                    <div class="spec-icon">V4</div>
+                    <div class="spec-content">
+                        <span class="spec-label">Havuz / Bahçe</span>
+                        <select class="spec-select" aria-label="Havuz Bahçe">
+                            <option>Özel Havuz & Bahçe</option>
+                            <option>Bahçe Var</option>
+                            <option>Havuz Var</option>
+                            <option>Standart Peyzaj</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="footer">
+            <div class="designer-signature">Powered By <strong>Rohat</strong></div>
+            <div class="contact contact-right">
+                <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                <div contenteditable="true">0542 511 91 47</div>
+            </div>
+            <div class="logo-placeholder">
+                <img src="./ERB_AUTO_Logo_Transparent.png" alt="ERB Auto Logo">
+            </div>
+            <div class="contact">
+                <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                <div contenteditable="true">0505 163 17 17</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = event => resolve(event.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setMainImage(src) {
+            const image = document.getElementById('propertyImage');
+            const frame = document.getElementById('imageFrame');
+            image.src = src;
+            frame.style.backgroundImage = `url("${src}")`;
+            frame.classList.add('has-image');
+        }
+
+        function updateActiveThumbnail(activeIndex) {
+            document.querySelectorAll('.thumbnail-item').forEach((item, index) => {
+                item.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        function renderThumbnailGallery(images, activeIndex) {
+            const gallery = document.getElementById('thumbnailGallery');
+            gallery.innerHTML = '';
+
+            images.slice(0, 4).forEach((src, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'thumbnail-item';
+                button.setAttribute('aria-label', `Gorsel ${index + 1}`);
+                button.innerHTML = `<img src="${src}" alt="Gorsel ${index + 1}">`;
+                button.addEventListener('click', event => {
+                    event.stopPropagation();
+                    setMainImage(src);
+                    updateActiveThumbnail(index);
+                });
+                gallery.appendChild(button);
+            });
+
+            updateActiveThumbnail(activeIndex);
+        }
+
+        async function loadImage(event) {
+            const panel = document.getElementById('imagePanel');
+            const hint = document.getElementById('imageHint');
+            const files = Array.from(event.target.files || []).slice(0, 4);
+
+            if (!files.length) {
+                return;
+            }
+
+            const sources = await Promise.all(files.map(readFileAsDataURL));
+            setMainImage(sources[0]);
+            renderThumbnailGallery(sources, 0);
+            panel.classList.toggle('multi-image', sources.length > 1);
+            hint.style.display = 'none';
+        }
+
+        function updatePropertyFields() {
+            const type = document.getElementById('propertyType').value;
+            document.querySelectorAll('.type-card').forEach(card => {
+                const visibleTypes = (card.dataset.types || '').split(',');
+                card.classList.toggle('hidden', !visibleTypes.includes(type));
+            });
+        }
+
+        function syncHeaderTags() {
+            document.querySelectorAll('.tag-controls input[type="checkbox"]').forEach(input => {
+                const target = document.getElementById(input.dataset.target);
+                if (!target) {
+                    return;
+                }
+                target.classList.toggle('is-hidden', !input.checked);
+            });
+        }
+
+        function downloadImage() {
+            const poster = document.getElementById('poster');
+            const button = document.querySelector('.download-button');
+            const originalText = button.innerText;
+
+            button.innerText = 'Hazırlanıyor...';
+            button.disabled = true;
+
+            html2canvas(poster, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'emlak-ilan-' + Date.now() + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                button.innerText = originalText;
+                button.disabled = false;
+            }).catch(() => {
+                alert('Resim oluşturulurken bir hata oluştu.');
+                button.innerText = originalText;
+                button.disabled = false;
+            });
+        }
+
+        document.getElementById('propertyType').addEventListener('change', updatePropertyFields);
+        document.querySelectorAll('.tag-controls input[type="checkbox"]').forEach(input => {
+            input.addEventListener('change', syncHeaderTags);
+        });
+        updatePropertyFields();
+        syncHeaderTags();
+    </script>
+</body>
+</html>
